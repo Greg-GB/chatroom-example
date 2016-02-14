@@ -1,0 +1,28 @@
+{
+  "name": "node-chatroom-example",
+  "version": "1.0.0",
+  "description": "This is server-side chat room example using socket.io for the websocket connection, mongoose for the message storage and ES6(ES2015) native promises.",
+  "main": "server.js",
+  "scripts": {
+    "start": "node server.js",
+    "test": "mocha test/chat.js"
+  },
+  "engines": {
+    "node" : ">=4.0.0" }
+  },
+  "keywords": [
+    "socket.io",
+    "chat"
+  ],
+  "author": "Greg Byram",
+  "license": "MIT",
+  "dependencies": {
+    "express": "~4.13.4",
+    "mocha": "~2.4.5",
+    "mongoose": "~4.4.3",
+    "request-promise": "~2.0.0",
+    "should": "`8.2.2",
+    "socket.io": "~1.4.5",
+    "socket.io-client": "~1.4.5"
+  }
+}
