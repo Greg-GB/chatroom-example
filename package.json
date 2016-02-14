@@ -8,7 +8,7 @@
     "test": "mocha test/chat.js"
   },
   "engines": {
-    "node" : ">=4.0.0" }
+    "node" : ">=4.0.0"
   },
   "keywords": [
     "socket.io",
