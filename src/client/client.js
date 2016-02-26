@@ -1,4 +1,5 @@
 'use strict';
+
 const io = require('socket.io-client');
 
 class SocketClient {
@@ -21,7 +22,8 @@ class SocketClient {
 
     close() {
         return new Promise((resolve, reject) => {
-            this.socket.close(() => resolve(null));
+            this.socket.disconnect();
+            resolve(null)
         });
     }
 }

@@ -1,7 +1,6 @@
 'use strict';
 
-const mongoose = require('mongoose'),
-    Message = require('../models/message');
+const mongoose = require('mongoose');
 
 class DataBase {
     constructor(host) {
@@ -25,15 +24,15 @@ class DataBase {
     }
 
     dropDataBase() {
-    return new Promise((resolve, reject) => {
-        this.connection.db.dropDatabase((err, result) => {
-            if(err) {
-                reject(err);
-                return
-            }
-            return resolve(result);
+        return new Promise((resolve, reject) => {
+            this.connection.db.dropDatabase((err, result) => {
+                if(err) {
+                    reject(err);
+                    return
+                }
+                return resolve(result);
+            });
         });
-    });
     }
 
     close() {
