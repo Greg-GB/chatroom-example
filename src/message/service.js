@@ -1,6 +1,7 @@
 'use strict';
 
 class MessageService {
+
     constructor(model) {
         this.model = model;
     }
@@ -15,7 +16,7 @@ class MessageService {
                 return resolve(docs);
             });
         })
-        .then(docs => res.send(docs));
+            .then(docs => res.send(docs));
     }
 }
 

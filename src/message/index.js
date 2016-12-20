@@ -1,12 +1,13 @@
 'use strict';
 
-const MessageService = require('./service'),
-    MessageModel = require('./model');
+const MessageService = require('./service');
+const MessageModel = require('./model');
 
 class Message {
+
     constructor(app) {
         this.app = app;
-        this.model = MessageModel;
+        this.model = this.app.db.model('Messages', MessageModel);
         this.service = new MessageService(this.model);
         this.registerRoutes();
     }

@@ -3,6 +3,7 @@
 const io = require('socket.io-client');
 
 class SocketClient {
+
     constructor(config) {
         this.config = config || {};
         this.socket = io.connect(this.config.url);

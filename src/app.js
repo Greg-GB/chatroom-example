@@ -1,80 +1,93 @@
 'use strict';
 
-const DB = require('./db/db'),
-    express = require('express'),
-    server = require('http'),
-    io = require('socket.io'),
-	Message = require('./message');
+const DB = require('./db');
+const express = require('express');
+const http = require('http');
+const io = require('socket.io');
+const Message = require('./message');
+const config = require('./config');
 
 class App {
-	constructor(config) {
-        this.config = config || {};
-        this.config.host = this.config.host || 'mongodb://localhost:27017/wsChatExample';
-        this.db = new DB(this.config.host);
+
+    constructor() {
         this.app = express();
-        this.server = server.createServer(this.app);
+        this.db = new DB();
+        this.server = http.createServer(this.app);
         this.io = io(this.server);
-		this.message = new Message(this.app);
-	}
+    }
 
-	registerListeners() {
-		const defaultChatRoom = 'default',
-			Message = this.message.getModel();
+    registerListeners() {
+        const defaultChatRoom = 'default';
 
-		this.io.on('connect', (socket) => {
-			socket.emit('welcome', {msg: 'Welcome!'});
-			socket.join(defaultChatRoom);
+        this.io.on('connect', (socket) => {
+            socket.emit('welcome', {msg: 'Welcome!'});
+            socket.join(defaultChatRoom);
 
-			socket.on('join', (data) => {
-				data.chatRoom = data.chatRoom || defaultChatRoom;
-				socket.join(data.chatRoom);
-				this.io.in(data.chatRoom).emit('joined', {msg: data.user + ' joined!'});
-			});
+            socket.on('join', (data) => {
+                data.chatRoom = data.chatRoom || defaultChatRoom;
+                socket.join(data.chatRoom);
+                this.io.in(data.chatRoom).emit('joined', {msg: `${data.user} joined!`});
+            });
 
-			socket.on('msg', (data) => {
-				data.chatRoom = data.chatRoom || defaultChatRoom;
-				let message = new Message(data);
-				message.save()
-					.then(this.io.in(data.chatRoom).emit('chatMsg', data));
-			});
+            socket.on('msg', (data) => {
+                data.chatRoom = data.chatRoom || defaultChatRoom;
+                let message = new this.MessageModel(data);
 
-			socket.on('leave', (data) => {
-				data.chatRoom = data.chatRoom || defaultChatRoom;
-				socket.leave(data.chatRoom);
-				this.io.in(data.chatRoom).emit('left', {msg: data.user + ' left!'});
-			});
-		});
-	}
+                message.save()
+                    .then(res => this.io.in(data.chatRoom).emit('chatMsg', data));
+            });
 
-	serverListen() {
-		return new Promise((resolve, reject) => {
-			this.server.listen(3000, (err) => {
-				if (err) {
-					reject(err);
-					return;
-				}
-				console.log('Server listening on port 3000');
-				return resolve(null);
-			});
-		});
-	}
+            socket.on('leave', (data) => {
+                data.chatRoom = data.chatRoom || defaultChatRoom;
+                socket.leave(data.chatRoom);
+                this.io.in(data.chatRoom).emit('left', {msg: `${data.user} left!`});
+            });
 
-	start() {
-		this.registerListeners();
-		return this.db.connect()
-			.then(this.serverListen())
-			.catch((err) => {
-				console.log(err);
-				throw err;
-			});
-	}
+            socket.on('error', (err) => console.log('Socket Error!', err));
+        });
+    }
 
-	close() {
-		return new Promise((resolve, reject) => {
-			this.io.close();
-			this.server.close(() => resolve(null));
-		});
-	}
+    serverListen() {
+        return new Promise((resolve, reject) => {
+            this.server.listen(3000, (err) => {
+                if (err) {
+                    reject(err);
+                    return;
+                }
+                console.log('Server listening on port 3000');
+                return resolve(null);
+            });
+        });
+    }
+
+    registerModels() {
+        this.MessageModel = new Message(this.app).getModel()
+    }
+
+    start() {
+        return this.db.connect()
+            .then(dbConn => {
+                this.app.db = dbConn;
+                this.registerModels();
+                this.registerListeners();
+                return this.serverListen();
+            })
+            .catch(err => {
+                console.log(err);
+                throw err;
+            });
+    }
+
+    close() {
+        return new Promise((resolve, reject) => {
+            this.io.close(err => {
+                if (err) {
+                    console.log(err);
+                }
+                this.server.close(() => resolve(null));
+            });
+        });
+    }
 }
 
 module.exports = App;
