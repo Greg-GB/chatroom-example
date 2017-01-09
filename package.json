@@ -1,7 +1,7 @@
 {
   "name": "node-chatroom-example",
-  "version": "1.0.0",
-  "description": "This is a node chatroom example using socket.io for the websocket connection, mongoose for the persistent message storage and several ES6 features.",
+  "version": "1.0.1",
+  "description": "This is a simple Node.JS chat room example using socket.io, mongo and ES2015 features.",
   "main": "server.js",
   "scripts": {
     "start": "node server.js",
@@ -11,8 +11,11 @@
     "node": ">=4.0.0"
   },
   "keywords": [
+    "mongoose",
     "socket.io",
-    "chat"
+    "chat",
+    "chatroom",
+    "sockets"
   ],
   "author": "Greg Byram",
   "license": "MIT",
@@ -22,7 +25,7 @@
     "mongoose": "^4.4.5",
     "request-promise": "~2.0.0",
     "should": "^8.2.2",
-    "socket.io": "~1.4.5",
-    "socket.io-client": "~1.4.5"
+    "socket.io": "^1.7.2",
+    "socket.io-client": "^1.7.2"
   }
 }

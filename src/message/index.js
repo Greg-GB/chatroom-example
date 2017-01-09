@@ -7,22 +7,23 @@ class Message {
 
     constructor(app) {
         this.app = app;
-        this.model = this.app.db.model('Messages', MessageModel);
-        this.service = new MessageService(this.model);
-        this.registerRoutes();
     }
 
     registerRoutes() {
         this.app.route('/msgs')
-            .get((req, res) => this.service.getMsgs(req, res));
+            .get((req, res) => this.getService().getMsgs(req, res));
     }
 
     getModel() {
-        return this.model;
+        return this.app.db.model('Messages', MessageModel);
     }
 
     getService() {
-        return this.service;
+        if (this.service) {
+            return this.service;
+        }
+
+        return this.service = new MessageService(this.getModel());
     }
 }
 

@@ -7,7 +7,7 @@ mongoose.Promise = global.Promise;
 
 class DataBase {
 
-    constructor(host) {
+    constructor() {
 
     }
 

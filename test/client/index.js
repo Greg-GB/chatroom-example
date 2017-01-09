@@ -6,7 +6,14 @@ class SocketClient {
 
     constructor(config) {
         this.config = config || {};
-        this.socket = io.connect(this.config.url);
+        this.socket = io.connect(this.config.url, {
+            forceNew: true,
+            query: {user: this.config.user}
+        });
+    }
+
+    getSocket() {
+        return this.socket;
     }
 
     listen(type, cb) {
@@ -17,15 +24,16 @@ class SocketClient {
         this.socket.removeAllListeners();
     }
 
-    sendMsg(type, data) {
+    emit(type, data) {
         this.socket.emit(type, data);
     }
 
+    removeListener(event, listener) {
+        this.socket.removeListener(event, listener);
+    }
+
     close() {
-        return new Promise((resolve, reject) => {
-            this.socket.disconnect();
-            resolve(null)
-        });
+        this.socket.disconnect();
     }
 }
 

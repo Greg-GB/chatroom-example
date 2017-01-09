@@ -6,6 +6,7 @@ const http = require('http');
 const io = require('socket.io');
 const Message = require('./message');
 const config = require('./config');
+const eventHandlers = require('./eventHandlers');
 
 class App {
 
@@ -14,36 +15,42 @@ class App {
         this.db = new DB();
         this.server = http.createServer(this.app);
         this.io = io(this.server);
+        this.message = new Message(this.app);
     }
 
-    registerListeners() {
-        const defaultChatRoom = 'default';
+    registerSocketListeners() {
+        this.io.use((socket, next) => {
+            // Quick middleware to check if the socket id is part of the room
+            if (!socket.checkRoomForId) {
+                socket.checkRoomForId = (room, id) => {
+                    let foundRoom = this.io.sockets.adapter.rooms[room];
+                    return (foundRoom) ? Object.keys(foundRoom.sockets).indexOf(id) > -1 : false;
+                }
+            }
+            next();
+        });
 
-        this.io.on('connect', (socket) => {
-            socket.emit('welcome', {msg: 'Welcome!'});
-            socket.join(defaultChatRoom);
+        this.io.on('connection', (socket) => {
+            socket.authenticated = false;
 
-            socket.on('join', (data) => {
-                data.chatRoom = data.chatRoom || defaultChatRoom;
-                socket.join(data.chatRoom);
-                this.io.in(data.chatRoom).emit('joined', {msg: `${data.user} joined!`});
+            socket.use((event, next) => {
+                if (!socket.authenticated && event[0] !== 'authenticate') {
+                    socket.disconnect({msg: 'Authentication error'});
+                    next(new Error('Authentication error'));
+                } else {
+                    next();
+                }
             });
 
-            socket.on('msg', (data) => {
-                data.chatRoom = data.chatRoom || defaultChatRoom;
-                let message = new this.MessageModel(data);
+            socket.on('authenticate', eventHandlers.authenticate.bind(this, socket));
 
-                message.save()
-                    .then(res => this.io.in(data.chatRoom).emit('chatMsg', data));
-            });
+            socket.on('join', eventHandlers.join.bind(this, socket));
 
-            socket.on('leave', (data) => {
-                data.chatRoom = data.chatRoom || defaultChatRoom;
-                socket.leave(data.chatRoom);
-                this.io.in(data.chatRoom).emit('left', {msg: `${data.user} left!`});
-            });
+            socket.on('msg', eventHandlers.message.bind(this, socket));
 
-            socket.on('error', (err) => console.log('Socket Error!', err));
+            socket.on('leave', eventHandlers.leave.bind(this, socket));
+
+            socket.on('error', eventHandlers.error.bind(this, socket));
         });
     }
 
@@ -61,7 +68,11 @@ class App {
     }
 
     registerModels() {
-        this.MessageModel = new Message(this.app).getModel()
+        this.message.getModel();
+    }
+
+    registerRoutes() {
+        this.message.registerRoutes();
     }
 
     start() {
@@ -69,12 +80,13 @@ class App {
             .then(dbConn => {
                 this.app.db = dbConn;
                 this.registerModels();
-                this.registerListeners();
+                this.registerRoutes();
+                this.registerSocketListeners();
                 return this.serverListen();
             })
             .catch(err => {
                 console.log(err);
-                throw err;
+                process.exit(1);
             });
     }
 

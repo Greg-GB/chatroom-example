@@ -1,19 +1,14 @@
-# Node chat room example using Socket.io
-This is a pretty simple node chat room example using socket.io for the websocket connection, mongoose for the message model/data store and ES6(ES2015) features including native promises. Enjoy!
+# Chat room example using Socket.io
+This is a simple Node.JS chat room example using socket.io, mongo and ES2015 features. If you want to see any specific socket.io or mongo features implemented feel free to shoot me a message.
 
 ## Requirements
-1. Node 4.x
-2. MongoDB installed
+1. Node.JS 4.x
+2. MongoDB
 
-## Recommendations
-1. Install mocha globally (npm install mocha -g)
-
-## Installation
+## Running
 1. Start MongoDB
 1. Install Node Packages
     * npm install
 1. Run Tests
-    * npm test or mocha
-1. Run Server
-    * npm start or node server.js
+    * npm test
     
